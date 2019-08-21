@@ -1,4 +1,3 @@
-import api
 from japronto import Application
 
 
@@ -8,4 +7,4 @@ def hello(request):
 
 app = Application()
 app.router.add_route('/', hello)
-app.run(port=80, debug=True)
+app.run(port=8000, debug=True)
