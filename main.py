@@ -4,7 +4,7 @@ from japronto import Application
 
 #** Variables **#
 is_heroku = 'ON_HIROKU' in os.environ
-web_port  = os.environ['PORT'] if is_heroku else 8000
+web_port  = int(os.environ.get('PORT', 8000)) if is_heroku else 8000
 
 # config = [
 #     # user api pages
