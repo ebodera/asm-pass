@@ -1,5 +1,4 @@
-from . import api
-
+import api
 from japronto import Application
 
 
