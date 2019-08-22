@@ -341,3 +341,19 @@ class Database:
             WHERE UserID=%s AND LogicalDelete=0 AND EventID=%s
             """
             self._execute(cursor, sql, (user_id, event_id))
+
+    def count_event_users(self, event_id, arrived=False):
+        """
+        count the number of users activly enrolled in the event
+
+        :param event_id: id associated w/ event id
+        :param arrived:  arrived=1 if true
+        """
+        self.event_exists(event_id)
+        with self._conn.cursor() as cursor:
+            sql = """
+            SELECT COUNT(UserID) FROM rUserToEvent
+            WHERE EventID=%s AND LogicalDelete=0 AND Arrived=%s
+            """
+            self._execute(cursor, sql, (event_id, int(arrived)))
+            return cursor.fetchone()

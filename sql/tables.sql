@@ -46,5 +46,5 @@ CREATE TABLE IF NOT EXISTS rUserToEvent (
     Arrived       TINYINT NOT NULL,
     LogicalDelete TINYINT NOT NULL,
     INDEX rUserToEvent_1 (UserID, LogicalDelete, EventID),
-    INDEX rUserToEvent_2 (EventID, LogicalDelete, Permission)
+    INDEX rUserToEvent_2 (EventID, LogicalDelete, Arrived)
 );
