@@ -221,13 +221,13 @@ class Database:
                 Creator,
                 Title,
                 Description,
-                start_date,
-                end_date,
+                StartDate,
+                EndDate,
             )
         """
         with self._conn.cursor() as cursor:
             sql = """
-            SELECT Creator, Title, Description, start_date, end_date
+            SELECT Creator, Title, Description, StartDate, EndDate
             FROM Events
             WHERE EventID=%s AND LogicalDelete=%s
             """
