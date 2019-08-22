@@ -38,7 +38,7 @@ def user_list_event_summary(req):
             event_id = result['eventid']
             json2    = db_conn.event_summary(event_id)
             arrived  = db_conn.count_event_users(event_id, arrived=True)
-            json2['arrived'] = arrived
+            json2['arrived'] = arrived['COUNT(UserID)']
             result.update({k.lower():str(v) for k,v in json2.items()})
         json = {'results': json1}
     except Exception as e:
