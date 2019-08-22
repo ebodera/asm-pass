@@ -49,11 +49,11 @@ def user_checkin(req):
     """POST => attempt to checkin for the given event and user"""
     user_id  = req.match_dict['user_id']
     event_id = req.match_dict['event_id']
-    try:
-        utils.assert_keys(req.form, ['otp'])
-        verify_otp(req.form['otp'])
-        db_conn.user_checkin(user_id, event_id)
-        json = {'checkin': True}
-    except Exception as e:
-        json = {'errors': [str(e)]}
-    return req.Response(json=json)
+    #try:
+    utils.assert_keys(req.form, ['otp'])
+    verify_otp(req.form['otp'])
+    db_conn.user_checkin(user_id, event_id)
+    json = {'checkin': True}
+    #except Exception as e:
+    #    json = {'errors': [str(e)]}
+    #return req.Response(json=json)
