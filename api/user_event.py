@@ -11,7 +11,7 @@ def user_list_events(req):
     user_id = req.match_dict['user_id']
     try:
         json = db_conn.user_list_events(user_id)
-        json = [{k.lower():v for k,v in item.items()} for item in items]
+        json = [{k.lower():v for k,v in item.items()} for item in json]
         json = {'results': json}
     except Exception as e:
         json = {'errors': [str(e)]}
