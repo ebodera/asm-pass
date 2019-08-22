@@ -73,10 +73,10 @@ def verify_otp(otp_str):
 _dfault_fmt = '%(asctime)s - %(name)s - %(levelname)-8s %(message)s'
 
 log     = make_logger('api', 'debug')
-db_conn = db.Database(auth=(
-    os.environ['DB_USER'],
-    os.environ['DB_PASS'],
-))
+db_conn = db.Database(host='us-cdbr-iron-east-02.cleardb.net', auth=(
+    'b56635ab405c6c',
+    '17574702',
+), db='heroku_77b3479c73262cb')
 
 # components
 from . import user
