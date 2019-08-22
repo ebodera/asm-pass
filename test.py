@@ -1,4 +1,5 @@
 import os
+import pyotp
 import api.db
 from datetime import datetime, timedelta
 
@@ -6,8 +7,13 @@ auth = (
     'root',
     os.environ['DB_PASS']
 )
+otp_base = os.environ['OTP_BASE']
 
-db = api.db.Database(auth)
+totp = pyotp.TOTP(otp_base)
+print('totp: %r' % totp.now())
+raise SystemExit()
+
+db   = api.db.Database(auth)
 
 user_id = db.user_new(
     firstname='John',
