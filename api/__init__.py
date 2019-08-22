@@ -21,7 +21,7 @@ from . import db
 # to increase the security, that would be generated
 # on creation of the user-account
 
-otp_base = os.environ['OTP_BASE']
+otp_base = 'base32secret3232'
 totp     = pyotp.TOTP(otp_base)
 
 #** Functions **#
