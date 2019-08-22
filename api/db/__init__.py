@@ -31,13 +31,18 @@ class Database:
             autocommit=True,
         )
 
+    def _execute(self, cursor, sql, args):
+        """wrapper for execution to reconnect to the database"""
+        self._conn.ping(reconnect=True)
+        cursor.execute(sql, args)
+
     def _new_id(self, table, field, retries=5):
         """generate a random-id for the table until new"""
         sql = """SELECT 1 FROM {0} WHERE {1}=%s""".format(table, field)
         with self._conn.cursor() as cursor:
             for n in range(retries):
                 rid = ''.join(random.choice(_id_chars) for _ in range(10))
-                cursor.execute(sql, (rid))
+                self._execute(cursor, sql, (rid))
                 if cursor.fetchone() is None:
                     return rid
             raise Exception('id generation retries exceeded %d' % retries)
@@ -48,7 +53,7 @@ class Database:
             sql = "SELECT 1 FROM {0} WHERE {1}=%s AND LogicalDelete=%s".format(
                 table, field,
             )
-            cursor.execute(sql, (id_value, int(deleted)))
+            self._execute(cursor, sql, (id_value, int(deleted)))
             if cursor.fetchone() is None:
                 raise Exception('%s: %r not found' % (field, id_value))
 
@@ -75,7 +80,7 @@ class Database:
             INSERT INTO Users
             VALUES (%s, %s, %s, %s, now(), now(), 0)
             """
-            cursor.execute(sql, (user_id, firstname, lastname, email))
+            self._execute(cursor, sql, (user_id, firstname, lastname, email))
         return user_id
 
     def user_exists(self, user_id, deleted=False):
@@ -93,7 +98,7 @@ class Database:
         """
         sql = """SELECT 1 FROM Users WHERE Email=%s AND LogicalDelete=0"""
         with self._conn.cursor() as cursor:
-            cursor.execute(sql, (email))
+            self._execute(cursor, sql, (email))
             if cursor.fetchone() is not None:
                 raise Exception('email: %s is already taken' % email)
 
@@ -115,7 +120,7 @@ class Database:
             FROM Users
             WHERE UserID=%s AND LogicalDelete=%s
             """
-            cursor.execute(sql, (user_id, int(deleted)))
+            self._execute(cursor, sql, (user_id, int(deleted)))
             return cursor.fetchone()
 
     def user_update(self, user_id, firstname=None, lastname=None, email=None):
@@ -149,7 +154,7 @@ class Database:
             SET {0}, LastUpdated=now()
             WHERE UserID=%s AND LogicalDelete=0
             """.format(keys)
-            cursor.execute(sql, values)
+            self._execute(cursor, sql, values)
 
     def user_delete(self, user_id):
         """
@@ -158,7 +163,7 @@ class Database:
         self.user_exists(user_id)
         with self._conn.cursor() as cursor:
             sql = "UPDATE Users SET LogicalDelete=1 WHERE UserID=%s"
-            cursor.execute(sql, (user_id))
+            self._execute(cursor, sql, (user_id))
 
     #
     # Table: Events - operations
@@ -192,7 +197,7 @@ class Database:
                 now(), now(), 0
             )
             """
-            cursor.execute(sql, (
+            self._execute(cursor, sql, (
                 event_id, creator_id, title, description, start_date, end_date,
             ))
         return event_id
@@ -226,7 +231,7 @@ class Database:
             FROM Events
             WHERE EventID=%s AND LogicalDelete=%s
             """
-            cursor.execute(sql, (event_id, int(deleted)))
+            self._execute(cursor, sql, (event_id, int(deleted)))
             return cursor.fetchone()
 
     def event_update(self, event_id,
@@ -264,7 +269,7 @@ class Database:
             SET {0}, LastUpdated=now()
             WHERE EventID=%s AND LogicalDelete=0
             """.format(keys)
-            cursor.execute(sql, values)
+            self._execute(cursor, sql, values)
 
     def event_delete(self, event_id):
         """
@@ -275,7 +280,7 @@ class Database:
         self.event_exists(event_id)
         with self._conn.cursor() as cursor:
             sql = "UPDATE Events SET LogicalDelete=1 WHERE EventID=%s"
-            cursor.execute(sql, (event_id))
+            self._execute(cursor, sql, (event_id))
     #
     # Table: rUserToEvent - operations
     #
@@ -296,7 +301,7 @@ class Database:
                 FROM rUserToEvent
                 WHERE UserID=%s AND LogicalDelete=%s
             """
-            cursor.execute(sql, (user_id, int(deleted)))
+            self._execute(cursor, sql, (user_id, int(deleted)))
             return cursor.fetchall()
 
     def user_event_status(self, user_id, event_id):
@@ -316,7 +321,7 @@ class Database:
             FROM rUserToEvent
             WHERE UserID=%s AND LogicalDelete=0 AND EventID=%s
             """
-            cursor.execute(sql, (user_id, event_id))
+            self._execute(cursor, sql, (user_id, event_id))
             return cursor.fetchone()
 
     def user_checkin(self, user_id, event_id):
@@ -334,4 +339,4 @@ class Database:
             SET Arrived=1
             WHERE UserID=%s AND LogicalDelete=0 AND EventID=%s
             """
-            cursor.execute(sql, (user_id, event_id))
+            self._execute(cursor, sql, (user_id, event_id))
