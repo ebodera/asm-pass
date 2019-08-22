@@ -27,7 +27,8 @@ class Database:
             password=auth[1],
             db=db,
             charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True,
         )
 
     def _new_id(self, table, field, retries=5):
@@ -75,7 +76,6 @@ class Database:
             VALUES (%s, %s, %s, %s, now(), now(), 0)
             """
             cursor.execute(sql, (user_id, firstname, lastname, email))
-        self._conn.commit()
         return user_id
 
     def user_exists(self, user_id, deleted=False):
@@ -150,7 +150,6 @@ class Database:
             WHERE UserID=%s AND LogicalDelete=0
             """.format(keys)
             cursor.execute(sql, values)
-        self._conn.commit()
 
     def user_delete(self, user_id):
         """
@@ -160,31 +159,30 @@ class Database:
         with self._conn.cursor() as cursor:
             sql = "UPDATE Users SET LogicalDelete=1 WHERE UserID=%s"
             cursor.execute(sql, (user_id))
-        self._conn.commit()
 
     #
     # Table: Events - operations
     #
 
-    def event_new(self, creator_id, title, description, startdate, enddate):
+    def event_new(self, creator_id, title, description, start_date, end_date):
         """
         create a new event and add a record to the database
 
         :param creator_id:  user-id associated with the creator
         :param title:       title of the event
         :param description: description of the event
-        :param startdate:   the start-date for the event
-        :param enddate:     the end-date for the event
+        :param start_date:  the start-date for the event
+        :param end_date:    the end-date for the event
         :return:
             the event-id
         """
-        assert isinstance(startdate, datetime.datetime)
-        assert isinstance(enddate, datetime.datetime)
+        assert isinstance(start_date, datetime.datetime)
+        assert isinstance(end_date, datetime.datetime)
         self.user_exists(creator_id)
         event_id = self._new_id('Events', 'EventID')
         # check that dates are valid
-        if startdate > enddate:
-            raise Exception('startdate > enddate')
+        if start_date > end_date:
+            raise Exception('start_date > end_date')
         # make changes with sql
         with self._conn.cursor() as cursor:
             sql = """
@@ -195,9 +193,8 @@ class Database:
             )
             """
             cursor.execute(sql, (
-                event_id, creator_id, title, description, startdate, enddate,
+                event_id, creator_id, title, description, start_date, end_date,
             ))
-        self._conn.commit()
         return event_id
 
     def event_exists(self, event_id, deleted=False):
@@ -219,13 +216,13 @@ class Database:
                 Creator,
                 Title,
                 Description,
-                StartDate,
-                EndDate,
+                start_date,
+                end_date,
             )
         """
         with self._conn.cursor() as cursor:
             sql = """
-            SELECT Creator, Title, Description, StartDate, EndDate
+            SELECT Creator, Title, Description, start_date, end_date
             FROM Events
             WHERE EventID=%s AND LogicalDelete=%s
             """
@@ -235,24 +232,24 @@ class Database:
     def event_update(self, event_id,
         title=None,
         description=None,
-        startdate=None,
-        enddate=None
+        start_date=None,
+        end_date=None
     ):
         """
         update an event with different information as it is given
 
         :param title:       title of the event to be changed
         :param description: description of the event to be changed
-        :param startdate:   the new stardate of the event
-        :param enddate:     the new endstae of the event
+        :param start_date:   the new stardate of the event
+        :param end_date:     the new endstae of the event
         """
         #TODO: check start/end date if they have been modified
         # right now start can be after end because there are no checks
         fields = {
             'Title':       title,
             'Description': description,
-            'StartDate':   startdate,
-            'EndDate':     enddate,
+            'start_date':   start_date,
+            'end_date':     end_date,
         }
         fields = {k:v for k,v in fields.items() if v is not None}
         if len(fields) == 0:
@@ -268,7 +265,6 @@ class Database:
             WHERE EventID=%s AND LogicalDelete=0
             """.format(keys)
             cursor.execute(sql, values)
-        self._conn.commit()
 
     def event_delete(self, event_id):
         """
@@ -280,8 +276,6 @@ class Database:
         with self._conn.cursor() as cursor:
             sql = "UPDATE Events SET LogicalDelete=1 WHERE EventID=%s"
             cursor.execute(sql, (event_id))
-        self._conn.commit()
-
     #
     # Table: rUserToEvent - operations
     #
@@ -298,9 +292,46 @@ class Database:
         self.user_exists(user_id)
         with self._conn.cursor() as cursor:
             sql = """
-                SELECT EventID, Permission
+                SELECT EventID, Permission, Arrived
                 FROM rUserToEvent
                 WHERE UserID=%s AND LogicalDelete=%s
             """
             cursor.execute(sql, (user_id, int(deleted)))
             return cursor.fetchall()
+
+    def user_event_status(self, user_id, event_id):
+        """
+        get status of a given user for a particular event
+
+        :param user_id:  id associated with user
+        :param event_id: id associated with event
+        :return:
+            dict_keys([Permission, Arrived])
+        """
+        self.user_exists(user_id)
+        self.event_exists(event_id)
+        with self._conn.cursor() as cursor:
+            sql = """
+            SELECT Permission, Arrived
+            FROM rUserToEvent
+            WHERE UserID=%s AND LogicalDelete=0 AND EventID=%s
+            """
+            cursor.execute(sql, (user_id, event_id))
+            return cursor.fetchone()
+
+    def user_checkin(self, user_id, event_id):
+        """
+        modify arrived status to true for the given event and user
+
+        :param user_id:  id associated with user
+        :param event_id: id associated with event
+        """
+        self.user_exists(user_id)
+        self.event_exists(event_id)
+        with self._conn.cursor() as cursor:
+            sql = """
+            UPDATE rUserToEvent
+            SET Arrived=1
+            WHERE UserID=%s AND LogicalDelete=0 AND EventID=%s
+            """
+            cursor.execute(sql, (user_id, event_id))
