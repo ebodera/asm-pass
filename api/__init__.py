@@ -69,7 +69,7 @@ def verify_otp(otp_str):
     """
     print(datetime.now(), otp_str)
     print(totp.now())
-    if not totp.verify(otp_str, valid_window=2):
+    if not totp.verify(otp_str, valid_window=5):
         raise Exception('otp failed to verify')
 
 #** Variables **#
