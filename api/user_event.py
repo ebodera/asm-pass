@@ -35,7 +35,7 @@ def user_list_event_summary(req):
         json1 = db_conn.user_list_events(user_id)
         json1 = [{k.lower():str(v) for k,v in item.items()} for item in json1]
         for result in json1:
-            json2 = db_conn.event_summary(result['EventID'])
+            json2 = db_conn.event_summary(result['eventid'])
             result.update({k.lower():str(v) for k,v in json2.items()})
         json = {'results': json1}
     except Exception as e:
