@@ -50,6 +50,7 @@ def user_checkin(req):
     user_id  = req.match_dict['user_id']
     event_id = req.match_dict['event_id']
     #try:
+    print('form: %s' % req.form)
     utils.assert_keys(req.form, ['otp'])
     verify_otp(req.form['otp'])
     db_conn.user_checkin(user_id, event_id)
