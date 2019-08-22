@@ -28,6 +28,20 @@ def user_event_status(req):
         json = {'errors': [str(e)]}
     return req.Response(json=json)
 
+def user_list_event_summary(req):
+    """GET => list events tied to a user and the summary info for each"""
+    user_id = req.match_dict['user_id']
+    try:
+        json1 = db_conn.user_list_events(user_id)
+        json1 = [{k.lower():str(v) for k,v in item.items()} for item in json]
+        for result in json1:
+            json2 = db_conn.event_summary(result['EventID'])
+            result.update({k.lower():str(v) for k,v in json2.items()})
+        json = {'results': json1}
+    except Exception as e:
+        json = {'errors': [str(e)]}
+    return req.Response(json=json)
+
 def user_checkin(req):
     """POST => attempt to checkin for the given event and user"""
     user_id  = req.match_dict['user_id']
