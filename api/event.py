@@ -45,10 +45,7 @@ def event_summary(req):
     event_id = req.match_dict['event_id']
     try:
         json = db_conn.event_summary(event_id)
-        json = {
-            k.lower():str(v)
-            for k,v in json.items()
-        }
+        json = {k.lower():str(v) for k,v in json.items()}
     except Exception as e:
         json = {'errors': [str(e)]}
     return req.Response(json=json)
