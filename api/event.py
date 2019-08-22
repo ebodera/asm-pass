@@ -3,6 +3,7 @@ api pages related to events
 """
 from . import log, db_conn
 from . import utils
+from datetime import datetime
 
 #** Variables **#
 _event_args = ['title', 'description', 'start_date', 'end_date']
@@ -44,7 +45,10 @@ def event_summary(req):
     event_id = req.match_dict['event_id']
     try:
         json = db_conn.event_summary(event_id)
-        json = {k.lower():v for k,v in json.items()}
+        json = {
+            k.lower():str(v)
+            for k,v in json.items()
+        }
     except Exception as e:
         json = {'errors': [str(e)]}
     return req.Response(json=json)
