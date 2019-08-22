@@ -9,11 +9,12 @@ from . import log, db_conn, verify_otp
 def user_list_events(req):
     """GET => list events connected to user-id"""
     user_id = req.match_dict['user_id']
-    #try:
-    json = db_conn.user_list_events(user_id)
-    json = {k.lower():v for k,v in json.items()}
-    #except Exception as e:
-        #json = {'errors': [str(e)]}
+    try:
+        json = db_conn.user_list_events(user_id)
+        json = [{k.lower():v for k,v in item.items()} for item in items]
+        json = {'results': json}
+    except Exception as e:
+        json = {'errors': [str(e)]}
     return req.Response(json=json)
 
 def user_event_status(req):
