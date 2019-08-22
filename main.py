@@ -20,7 +20,7 @@ config = [
     ('/api/v1/event/{event_id}/summary', api.event.event_update, ['POST']),
     # user event management
     ('/api/v1/user/{user_id}/events', api.user_event.user_list_events, ['GET']),
-    ('/api/v1/user/{user_id}/events2', api.user_event.user_list_event_summary, ['GET'])
+    ('/api/v1/user/{user_id}/events2', api.user_event.user_list_event_summary, ['GET']),
     ('/api/v1/event/{event_id}/user/{user_id}', api.user_event.user_event_status, ['GET']),
     ('/api/v1/event/{event_id}/user/{user_id}/checkin', api.user_event.user_checkin, ['POST'])
 ]
