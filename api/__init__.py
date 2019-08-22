@@ -3,6 +3,7 @@ import sys
 import pyotp
 import logging
 from . import db
+from datetime import datetime
 
 #** Variables **#
 
@@ -66,6 +67,8 @@ def verify_otp(otp_str):
 
     :param otp_str: otp string connected w/ otp
     """
+    print(datetime.now(), otp_str)
+    print(totp.now())
     if not totp.verify(otp_str, valid_window=2):
         raise Exception('otp failed to verify')
 
